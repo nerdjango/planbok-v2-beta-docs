@@ -1,4 +1,4 @@
-# Planbok MPC System: API Key Documentation
+# Planbok MPC System: API Documentation
 
 This document describes the API endpoints accessible via API Keys in the Planbok MPC System.
 
@@ -6,7 +6,7 @@ This document describes the API endpoints accessible via API Keys in the Planbok
 
 Planbok utilizes API Keys to authorize requests. All API requests must be made over HTTPS and include the `PLANBOK-X-API-KEY` header.
 
-**Base URL:** `https://beta-api.planbok.io`
+**Base URL:** `https://beta-api.planbok.io/v2`
 
 ### 1.1 API Key Header
 
@@ -114,7 +114,7 @@ async function encryptSecretForMPC(secret, publicKeyPem, context) {
 const axios = require("axios");
 
 const client = axios.create({
-    baseURL: "https://beta-api.planbok.io",
+    baseURL: "https://beta-api.planbok.io/v2",
     headers: {
         "PLANBOK-X-API-KEY": "YOUR_API_KEY",
         "Content-Type": "application/json"
