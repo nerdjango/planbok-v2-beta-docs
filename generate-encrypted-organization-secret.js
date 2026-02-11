@@ -14,13 +14,13 @@ const crypto = require("crypto");
  * Paste the public key from the Planbok dashboard.
  */
 const organizationPublicKey = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxCgNoHHK0nMXEgNUkhaM
-H6puWYG/QoKAryoe+aBs6DnJkLG/SaQsdA5RDeOUuIc0gRMYUGvoAZ2VPOou0eoO
-ykMjTKeggBqmOfu41Aea/R01w3ioPw7CYk6l8baGHpuQRvOwo1VgJrEA6EgN3Snv
-AEl2NTWC+D/CrfFU1YGIFVtshdZI56MYqE87XIgBgaZK9fyTRiZTHWaSACbgrqm8
-rWX2/KzV4OajOZwrYl/6ZvbJ2B9BaD6BUEPHcwWdm3xFX3uWpyL0p/Km5YWObwzW
-6LR6zWDteEuCT1eTrdKjW7eFIEH3yck93wTKf17w575R9uWEZxi/ohUvlaVpkp28
-eQIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0g+zt0XaWKG4KTKlacGX
+JWnKbynTxRqJmIDH2i4PCeD6jj75ePmXK3hM7EZNOfLgqzQcPqLjEVFrSaimWnVe
+f7r0lXE1NQ/GeoZYuk1I+81ebamC8MzKALYi7OJk/stin/ylU2ATH3QW1dWa6fq3
+Z6iJG8DaLd6mIstLAglXgvzMdyoLWRm0WcfYlpPkSm73IwNQMespZAjSL9pG7mjM
+GhiCTp5Lzb5eKtbi4I/puFrNQkQ0uczevSN63wUiBXXXlEx8dnmtsXmuli/UJAfg
+R/YB1wrdkI1GzepkYdiVcl0L+RcSzr34KkwZ6ablvmS8O/hM9DnRH08/VxHpw2Ov
+KwIDAQAB
 -----END PUBLIC KEY-----`;
 
 /**

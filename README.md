@@ -15,15 +15,15 @@ Every request must include your API key in the request header:
 
 ### 1.2 API Key Types
 
--   **Full Access**: Allows all permitted HTTP methods (GET, POST, PUT, DELETE).
--   **Restricted**: Limited to **GET** requests only. Useful for read-only dashboards or monitoring.
+- **Full Access**: Allows all permitted HTTP methods (GET, POST, PUT, DELETE).
+- **Restricted**: Limited to **GET** requests only. Useful for read-only dashboards or monitoring.
 
 ### 1.3 Security: Host & IP Whitelisting
 
 For enhanced security, API keys can be restricted to specific:
 
--   **Allowed Hosts**: Validated against the `Origin` header.
--   **Allowed IPs**: Validated against the client's source IP address.
+- **Allowed Hosts**: Validated against the `Origin` header.
+- **Allowed IPs**: Validated against the client's source IP address.
 
 If whitelisting is configured, requests from unauthorized hosts or IPs will return a `401 Unauthorized` error.
 
@@ -40,14 +40,14 @@ Exceeding this limit will result in a `429 Too Many Requests` error.
 
 An `idempotencyKey` (UUID v4) can be included in the request body of any state-changing (**POST**, **PUT**) request to ensure safety during network retries.
 
--   **Mandatory**: Required for sensitive operations including:
-    -   Wallet & Wallet Set creation.
-    -   All Transfer & Contract Execution operations.
-    -   All Signing operations (Message, Typed Data, Transaction).
--   **Optional**: Not strictly required for:
-    -   Customer creation.
-    -   Metadata updates (e.g., updating a wallet or customer name).
-    -   Token addition.
+- **Mandatory**: Required for sensitive operations including:
+  - Wallet & Wallet Set creation.
+  - All Transfer & Contract Execution operations.
+  - All Signing operations (Message, Typed Data, Transaction).
+- **Optional**: Not strictly required for:
+  - Customer creation.
+  - Metadata updates (e.g., updating a wallet or customer name).
+  - Token addition.
 
 **Behavior**: If the server receives a second request with the same `idempotencyKey`, it returns the cached result of the original request. If a mandatory key is missing, the server returns `400 Bad Request`.
 
@@ -67,41 +67,41 @@ The following example uses the Web Crypto API to prepare the secret:
  * @param {string} context - 'dkg' (creating) or 'sign' (transferring/signing)
  */
 async function encryptSecretForMPC(secret, publicKeyPem, context) {
-    const payload = JSON.stringify({
-        secret,
-        timestamp: Date.now(),
-        context
-    });
+  const payload = JSON.stringify({
+    secret,
+    timestamp: Date.now(),
+    context,
+  });
 
-    // Import Public Key
-    const pemHeader = "-----BEGIN PUBLIC KEY-----";
-    const pemFooter = "-----END PUBLIC KEY-----";
-    const pemContents = publicKeyPem
-        .replace(pemHeader, "")
-        .replace(pemFooter, "")
-        .replace(/\s/g, "");
-    const binaryDerString = atob(pemContents);
-    const binaryDer = new Uint8Array(binaryDerString.length);
-    for (let i = 0; i < binaryDerString.length; i++) {
-        binaryDer[i] = binaryDerString.charCodeAt(i);
-    }
+  // Import Public Key
+  const pemHeader = "-----BEGIN PUBLIC KEY-----";
+  const pemFooter = "-----END PUBLIC KEY-----";
+  const pemContents = publicKeyPem
+    .replace(pemHeader, "")
+    .replace(pemFooter, "")
+    .replace(/\s/g, "");
+  const binaryDerString = atob(pemContents);
+  const binaryDer = new Uint8Array(binaryDerString.length);
+  for (let i = 0; i < binaryDerString.length; i++) {
+    binaryDer[i] = binaryDerString.charCodeAt(i);
+  }
 
-    const publicKey = await crypto.subtle.importKey(
-        "spki",
-        binaryDer.buffer,
-        { name: "RSA-OAEP", hash: "SHA-256" },
-        false,
-        ["encrypt"]
-    );
+  const publicKey = await crypto.subtle.importKey(
+    "spki",
+    binaryDer.buffer,
+    { name: "RSA-OAEP", hash: "SHA-256" },
+    false,
+    ["encrypt"],
+  );
 
-    // Encrypt with RSA-OAEP
-    const encrypted = await crypto.subtle.encrypt(
-        { name: "RSA-OAEP" },
-        publicKey,
-        new TextEncoder().encode(payload)
-    );
+  // Encrypt with RSA-OAEP
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "RSA-OAEP" },
+    publicKey,
+    new TextEncoder().encode(payload),
+  );
 
-    return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+  return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
 }
 ```
 
@@ -114,20 +114,20 @@ async function encryptSecretForMPC(secret, publicKeyPem, context) {
 const axios = require("axios");
 
 const client = axios.create({
-    baseURL: "https://beta-api.planbok.io/v2",
-    headers: {
-        "PLANBOK-X-API-KEY": "YOUR_API_KEY",
-        "Content-Type": "application/json"
-    }
+  baseURL: "https://beta-api.planbok.io/v2",
+  headers: {
+    "PLANBOK-X-API-KEY": "YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
 });
 
 async function getWallets() {
-    try {
-        const response = await client.get("/wallets");
-        console.log(response.data);
-    } catch (error) {
-        console.error("Error:", error.response.status, error.response.data);
-    }
+  try {
+    const response = await client.get("/wallets");
+    console.log(response.data);
+  } catch (error) {
+    console.error("Error:", error.response.status, error.response.data);
+  }
 }
 ```
 
@@ -139,49 +139,49 @@ Wallet Sets are the primary containers for your organization's wallets. Each Wal
 
 Used to retrieve the RSA public key required for encrypting secrets.
 
--   **Endpoint:** `GET /config/organization/public-key`
--   **Authentication:** API Key required.
--   **Response:**
-    -   `200 OK`: Returns the PEM-formatted public key in the `data` field.
+- **Endpoint:** `GET /config/organization/public-key`
+- **Authentication:** API Key required.
+- **Response:**
+  - `200 OK`: Returns the PEM-formatted public key in the `data` field.
 
 ### 2.2 Create Wallet Set
 
 Creates a new wallet set. This operation is sensitive and requires an `encryptedOrganizationSecret`.
 
--   **Endpoint:** `POST /wallet-sets`
--   **Request Body:**
-    -   `name` (string, required): A human-readable name for the wallet set.
-    -   `encryptedOrganizationSecret` (string, required): Base64 encoded encrypted secret.
-    -   `idempotencyKey` (string, required): UUID v4.
--   **Example Body:**
-    ```json
-    {
-        "name": "Production Treasury",
-        "encryptedOrganizationSecret": "BASE64_ENCRYPTED_SECRET...",
-        "idempotencyKey": "550e8400-e29b-41d4-a716-446655440000"
-    }
-    ```
--   **Errors:**
-    -   `400 Bad Request`: Missing fields, invalid secret format, or maximum wallet set limit reached.
-    -   `401 Unauthorized`: Secret reuse or invalid API key.
+- **Endpoint:** `POST /organization/wallet-sets`
+- **Request Body:**
+  - `name` (string, required): A human-readable name for the wallet set.
+  - `encryptedOrganizationSecret` (string, required): Base64 encoded encrypted secret.
+  - `idempotencyKey` (string, required): UUID v4.
+- **Example Body:**
+  ```json
+  {
+    "name": "Production Treasury",
+    "encryptedOrganizationSecret": "BASE64_ENCRYPTED_SECRET...",
+    "idempotencyKey": "550e8400-e29b-41d4-a716-446655440000"
+  }
+  ```
+- **Errors:**
+  - `400 Bad Request`: Missing fields, invalid secret format, or maximum wallet set limit reached.
+  - `401 Unauthorized`: Secret reuse or invalid API key.
 
 ### 2.3 List Wallet Sets
 
 Retrieves a paginated list of wallet sets for the organization.
 
--   **Endpoint:** `GET /wallet-sets`
--   **Query Parameters:**
-    -   `page` (number, optional, default: `1`): The page number to retrieve.
-    -   `limit` (number, optional, default: `10`): Number of items per page.
-    -   `order` (string, optional, default: `"DESC"`): Sort order (`"ASC"` or `"DESC"`).
--   **Response:**
-    -   `200 OK`: Returns an array of wallet set objects and pagination metadata.
+- **Endpoint:** `GET /wallet-sets`
+- **Query Parameters:**
+  - `page` (number, optional, default: `1`): The page number to retrieve.
+  - `limit` (number, optional, default: `10`): Number of items per page.
+  - `order` (string, optional, default: `"DESC"`): Sort order (`"ASC"` or `"DESC"`).
+- **Response:**
+  - `200 OK`: Returns an array of wallet set objects and pagination metadata.
 
 #### Axios Example: List Wallet Sets
 
 ```javascript
 const response = await client.get("/wallet-sets", {
-    params: { page: 1, limit: 5, order: "DESC" }
+  params: { page: 1, limit: 5, order: "DESC" },
 });
 console.log(response.data.data); // Array of wallet sets
 ```
@@ -190,10 +190,10 @@ console.log(response.data.data); // Array of wallet sets
 
 Retrieves details for a specific wallet set.
 
--   **Endpoint:** `GET /wallet-sets/:id`
--   **Response:**
-    -   `200 OK`: Returns the wallet set object.
-    -   `404 Not Found`: Wallet set does not exist.
+- **Endpoint:** `GET /wallet-sets/:id`
+- **Response:**
+  - `200 OK`: Returns the wallet set object.
+  - `404 Not Found`: Wallet set does not exist.
 
 ## 3. Wallets
 
@@ -203,26 +203,26 @@ Wallets are endpoint-specific addresses created within a Wallet Set. They are id
 
 Creates one or more wallets across specified blockchains within a wallet set.
 
--   **Endpoint:** `POST /wallets`
--   **Request Body:**
-    -   `walletSetId` (string, required): The ID of the parent Wallet Set.
-    -   `blockchains` (string[], required): Array of blockchain identifiers (e.g., `["ETH", "SOL"]`).
-    -   `count` (number, optional, default: 1): Number of wallets to create.
-    -   `metadata` (object[], required): Array of metadata objects for each wallet.
-        -   `name` (string): A descriptive name for the wallet.
-        -   `refId` (string): Your internal unique identifier for this wallet/user.
-    -   `encryptedOrganizationSecret`, `idempotencyKey` (required).
+- **Endpoint:** `POST /organization/wallets`
+- **Request Body:**
+  - `walletSetId` (string, required): The ID of the parent Wallet Set.
+  - `blockchains` (string[], required): Array of blockchain identifiers (e.g., `["ETH", "SOL"]`).
+  - `count` (number, optional, default: 1): Number of wallets to create.
+  - `metadata` (object[], required): Array of metadata objects for each wallet.
+    - `name` (string): A descriptive name for the wallet.
+    - `refId` (string): Your internal unique identifier for this wallet/user.
+  - `encryptedOrganizationSecret`, `idempotencyKey` (required).
 
 #### Axios Example: Create Wallet
 
 ```javascript
 const response = await client.post("/wallets", {
-    walletSetId: "ws_123...",
-    blockchains: ["ETH"],
-    count: 1,
-    metadata: [{ name: "Treasury Wallet", refId: "ext_ref_001" }],
-    encryptedOrganizationSecret: "BASE64_ENCRYPTED_SECRET...",
-    idempotencyKey: "uuid-v4-key..."
+  walletSetId: "ws_123...",
+  blockchains: ["ETH"],
+  count: 1,
+  metadata: [{ name: "Treasury Wallet", refId: "ext_ref_001" }],
+  encryptedOrganizationSecret: "BASE64_ENCRYPTED_SECRET...",
+  idempotencyKey: "uuid-v4-key...",
 });
 ```
 
@@ -230,63 +230,63 @@ const response = await client.post("/wallets", {
 
 Retrieves wallets with pagination and optional filtering.
 
--   **Endpoint:** `GET /wallets`
--   **Query Parameters:**
-    -   `walletSet` (string): Filter by Wallet Set ID.
-    -   `blockchain` (string): Filter by blockchain (e.g., `ETH`).
-    -   `address` (string): Filter by wallet address.
-    -   `refId` (string): Filter by your reference ID.
-    -   `page`, `limit`, `order` (optional): Standard pagination defaults.
--   **Response:**
-    -   `200 OK`: Returns an array of wallets and pagination metadata.
+- **Endpoint:** `GET /wallets`
+- **Query Parameters:**
+  - `walletSet` (string): Filter by Wallet Set ID.
+  - `blockchain` (string): Filter by blockchain (e.g., `ETH`).
+  - `address` (string): Filter by wallet address.
+  - `refId` (string): Filter by your reference ID.
+  - `page`, `limit`, `order` (optional): Standard pagination defaults.
+- **Response:**
+  - `200 OK`: Returns an array of wallets and pagination metadata.
 
 #### Axios Example: List Wallets
 
 ```javascript
 const response = await client.get("/wallets", {
-    params: { blockchain: "ETH", limit: 20 }
+  params: { blockchain: "ETH", limit: 20 },
 });
 console.log(response.data.data); // Array of wallets
 ```
 
 ### 3.3 Get Wallet Details
 
--   **Endpoint:** `GET /wallets/:id`
--   **Response:** `200 OK` with wallet object.
+- **Endpoint:** `GET /wallets/:id`
+- **Response:** `200 OK` with wallet object.
 
 ### 3.4 Update Wallet
 
 Updates a wallet's human-readable metadata.
 
--   **Endpoint:** `PUT /wallets/:id`
--   **Request Body:**
-    -   `metadata` (object): Should contain `name` and/or `refId`.
-    -   `idempotencyKey` (string, optional): Recommended but not mandatory.
--   **Example Body:**
-    ```json
-    {
-        "metadata": { "name": "New Name", "refId": "NEW_REF_001" },
-        "idempotencyKey": "550e8400-e29b-41d4-a716-446655440000"
-    }
-    ```
+- **Endpoint:** `PUT /wallets/:id`
+- **Request Body:**
+  - `metadata` (object): Should contain `name` and/or `refId`.
+  - `idempotencyKey` (string, optional): Recommended but not mandatory.
+- **Example Body:**
+  ```json
+  {
+    "metadata": { "name": "New Name", "refId": "NEW_REF_001" },
+    "idempotencyKey": "550e8400-e29b-41d4-a716-446655440000"
+  }
+  ```
 
 ### 3.5 Get Token Balances
 
 Retrieves the balances of all tokens (native and fungible) held by a wallet.
 
--   **Endpoint:** `GET /wallets/:id/balances`
--   **Query Parameters:**
-    -   `page` (number, optional, default: `1`).
-    -   `limit` (number, optional, default: `10`).
-    -   `order` (string, optional, default: `"DESC"`).
--   **Response:**
-    -   `200 OK`: Returns an array of balance objects and pagination metadata.
+- **Endpoint:** `GET /wallets/:id/balances`
+- **Query Parameters:**
+  - `page` (number, optional, default: `1`).
+  - `limit` (number, optional, default: `10`).
+  - `order` (string, optional, default: `"DESC"`).
+- **Response:**
+  - `200 OK`: Returns an array of balance objects and pagination metadata.
 
 #### Axios Example: Get Balances
 
 ```javascript
 const response = await client.get(`/wallets/${walletId}/balances`, {
-    params: { page: 1, limit: 50 }
+  params: { page: 1, limit: 50 },
 });
 ```
 
@@ -298,68 +298,68 @@ Planbok supports native token transfers, fungible token transfers (ERC20, etc.),
 
 Validates if a destination address is valid for a specific blockchain.
 
--   **Endpoint:** `POST /transactions/validate-address`
--   **Request Body:**
-    -   `address` (string, required)
-    -   `blockchain` (string, required)
--   **Response:** `200 OK` with validation status.
+- **Endpoint:** `POST /transactions/validate-address`
+- **Request Body:**
+  - `address` (string, required)
+  - `blockchain` (string, required)
+- **Response:** `200 OK` with validation status.
 
 ### 4.2 Estimate Fees
 
 Always estimate fees before broadcasting a transaction to ensure sufficient balance and to get current gas prices.
 
--   **Endpoints:**
-    -   `POST /transfer/estimate-fee`
-    -   `POST /contract-execution/estimate-fee`
--   **Key Parameters (Transfer):** `destinationAddress`, `walletId`, `tokenId`, `amounts`.
--   **Response:** Returns estimation for `low`, `medium`, and `high` priority.
+- **Endpoints:**
+  - `POST /transfer/estimate-fee`
+  - `POST /contract-execution/estimate-fee`
+- **Key Parameters (Transfer):** `destinationAddress`, `walletId`, `tokenId`, `amounts`.
+- **Response:** Returns estimation for `low`, `medium`, and `high` priority.
 
 ### 4.3 Initiate Transfer
 
 Transfers native or fungible tokens from a Planbok wallet.
 
--   **Endpoint:** `POST /transactions/transfer`
--   **Request Body:**
-    -   `walletId` (string, required): Source wallet ID.
-    -   `destinationAddress` (string, required).
-    -   `tokenId` (string, required): The ID of the token to transfer.
-    -   `amounts` (string[], required): Array of amounts (e.g., `["1.5"]`).
-    -   `nftTokenIds` (string[], optional): Required for NFT transfers.
-    -   `feeLevel` (string, optional): `low`, `medium`, or `high`.
-    -   `encryptedOrganizationSecret` (string, required).
-    -   `idempotencyKey` (string, required).
--   **Response:** `200 OK` with transaction hash and ID.
+- **Endpoint:** `POST /transactions/transfer`
+- **Request Body:**
+  - `walletId` (string, required): Source wallet ID.
+  - `destinationAddress` (string, required).
+  - `tokenId` (string, required): The ID of the token to transfer.
+  - `amounts` (string[], required): Array of amounts (e.g., `["1.5"]`).
+  - `nftTokenIds` (string[], optional): Required for NFT transfers.
+  - `feeLevel` (string, optional): `low`, `medium`, or `high`.
+  - `encryptedOrganizationSecret` (string, required).
+  - `idempotencyKey` (string, required).
+- **Response:** `200 OK` with transaction hash and ID.
 
 ### 4.4 Contract Execution
 
 Executes a function on a smart contract.
 
--   **Endpoint:** `POST /transactions/contract-execution`
--   **Request Body:**
-    -   `walletId`, `contractAddress`, `abiFunctionSignature`, `abiParameters`.
-    -   `amount` (string, optional): For payable functions.
-    -   `feeLevel`, `encryptedOrganizationSecret`, `idempotencyKey`.
+- **Endpoint:** `POST /transactions/contract-execution`
+- **Request Body:**
+  - `walletId`, `contractAddress`, `abiFunctionSignature`, `abiParameters`.
+  - `amount` (string, optional): For payable functions.
+  - `feeLevel`, `encryptedOrganizationSecret`, `idempotencyKey`.
 
 ### 4.5 Cancel or Accelerate
 
 Only applicable to stuck/pending transactions on supported chains (like EVM).
 
--   **Endpoints:**
-    -   `POST /transactions/:id/cancel`
-    -   `POST /transactions/:id/accelerate`
--   **Parameters:** `encryptedOrganizationSecret`, `idempotencyKey`.
+- **Endpoints:**
+  - `POST /transactions/:id/cancel`
+  - `POST /transactions/:id/accelerate`
+- **Parameters:** `encryptedOrganizationSecret`, `idempotencyKey`.
 
 ### 4.6 List/Get Transactions
 
--   **List:** `GET /transactions`
-    -   **Query Parameters**: `walletId`, `blockchain`, `type`, `status`, `page`, `limit`, `order`.
--   **Get:** `GET /transactions/:id`
+- **List:** `GET /transactions`
+  - **Query Parameters**: `walletId`, `blockchain`, `type`, `status`, `page`, `limit`, `order`.
+- **Get:** `GET /transactions/:id`
 
 #### Axios Example: List Transactions
 
 ```javascript
 const response = await client.get("/transactions", {
-    params: { walletId: "w_123...", status: "confirmed", page: 1, limit: 10 }
+  params: { walletId: "w_123...", status: "confirmed", page: 1, limit: 10 },
 });
 ```
 
@@ -371,50 +371,50 @@ Signing allows you to authorize data or raw transactions using the MPC nodes wit
 
 Signs an arbitrary string or a hex-encoded hash.
 
--   **Endpoint:** `POST /sign/message`
--   **Request Body:**
-    -   `walletId` (string, required).
-    -   `message` (string, required): The content to sign.
-    -   `encodedByHex` (boolean, optional, default: `false`): Set to `true` if the message is a 32-byte hex string (starts with `0x`).
-    -   `memo` (string, optional): Context for the signature (max 256 chars).
-    -   `encryptedOrganizationSecret` (string, required).
+- **Endpoint:** `POST /sign/message`
+- **Request Body:**
+  - `walletId` (string, required).
+  - `message` (string, required): The content to sign.
+  - `encodedByHex` (boolean, optional, default: `false`): Set to `true` if the message is a 32-byte hex string (starts with `0x`).
+  - `memo` (string, optional): Context for the signature (max 256 chars).
+  - `encryptedOrganizationSecret` (string, required).
 
 ### 5.2 Sign Typed Data (EIP-712)
 
 Signs structured data according to the EIP-712 standard (EVM chains only).
 
--   **Endpoint:** `POST /sign/typed-data`
--   **Request Body:**
-    -   `walletId`, `encryptedOrganizationSecret`.
-    -   `typedData` (string, required): A JSON string representing the EIP-712 structured data.
+- **Endpoint:** `POST /sign/typed-data`
+- **Request Body:**
+  - `walletId`, `encryptedOrganizationSecret`.
+  - `typedData` (string, required): A JSON string representing the EIP-712 structured data.
 
 ### 5.3 Sign Transaction
 
 Signs a raw transaction or a transaction object without broadcasting it.
 
--   **Endpoint:** `POST /sign/transaction`
--   **Request Body:**
-    -   `walletId`, `encryptedOrganizationSecret`.
-    -   `rawTransaction` (string): Hex for EVM/DOT, Base64 for SOL/NEAR/COSMOS.
-    -   **OR** `transaction` (string): JSON string representation of the transaction.
-    -   _Note: `rawTransaction` and `transaction` are mutually exclusive._
+- **Endpoint:** `POST /sign/transaction`
+- **Request Body:**
+  - `walletId`, `encryptedOrganizationSecret`.
+  - `rawTransaction` (string): Hex for EVM/DOT, Base64 for SOL/NEAR/COSMOS.
+  - **OR** `transaction` (string): JSON string representation of the transaction.
+  - _Note: `rawTransaction` and `transaction` are mutually exclusive._
 
 ### 5.4 Sign Delegate Action (NEAR)
 
 Signs a NEAR Delegate Action for use in meta-transactions.
 
--   **Endpoint:** `POST /sign/delegate-action`
--   **Request Body:**
-    -   `walletId`, `unsignedDelegateAction` (string, Base64), `encryptedOrganizationSecret`.
+- **Endpoint:** `POST /sign/delegate-action`
+- **Request Body:**
+  - `walletId`, `unsignedDelegateAction` (string, Base64), `encryptedOrganizationSecret`.
 
 #### Axios Example: Sign Message
 
 ```javascript
 const response = await client.post("/sign/message", {
-    walletId: "w_123...",
-    message: "Hello Planbok",
-    encryptedOrganizationSecret: "...",
-    idempotencyKey: "..."
+  walletId: "w_123...",
+  message: "Hello Planbok",
+  encryptedOrganizationSecret: "...",
+  idempotencyKey: "...",
 });
 ```
 
@@ -426,11 +426,11 @@ Customers represent end-users. Planbok supports both **Organization-managed** (y
 
 Registers a new customer in your organization.
 
--   **Endpoint:** `POST /customers`
--   **Request Body:**
-    -   `name` (string, required): Customer name.
-    -   `refId` (string, required): Your internal user ID.
-    -   `idempotencyKey` (string, optional): Recommended for safety.
+- **Endpoint:** `POST /customers`
+- **Request Body:**
+  - `name` (string, required): Customer name.
+  - `refId` (string, required): Your internal user ID.
+  - `idempotencyKey` (string, optional): Recommended for safety.
 
 ### 6.2 Self-Custody Flow (Challenges)
 
@@ -440,63 +440,63 @@ Every challenge request returns a **Challenge Object** containing a `challengeId
 
 #### Initialization & Wallets
 
--   **Initialize User:** `POST /customers/:id/initialize`
-    -   `blockchains`, `redirectUrl`, `accountType` (optional).
--   **Create Wallet:** `POST /customers/:id/wallet/create`
-    -   `blockchains`, `redirectUrl`, `metadata` (array of `{name, refId}`).
+- **Initialize User:** `POST /customers/:id/initialize`
+  - `blockchains`, `redirectUrl`, `accountType` (optional).
+- **Create Wallet:** `POST /customers/:id/wallet/create`
+  - `blockchains`, `redirectUrl`, `metadata` (array of `{name, refId}`).
 
 #### Transaction Challenges
 
--   **Transfer:** `POST /customers/:id/transactions/transfer`
-    -   `walletId`, `destinationAddress`, `tokenId`, `amounts`, `nftTokenIds`, `redirectUrl`.
--   **Contract Execution:** `POST /customers/:id/transactions/contract-execution`
-    -   `walletId`, `contractAddress`, `abiFunctionSignature`, `abiParameters`, `redirectUrl`.
--   **Cancel/Accelerate:**
-    -   `POST /customers/:id/transactions/:txId/cancel`
-    -   `POST /customers/:id/transactions/:txId/accelerate`
-    -   `redirectUrl` (required).
+- **Transfer:** `POST /customers/:id/transactions/transfer`
+  - `walletId`, `destinationAddress`, `tokenId`, `amounts`, `nftTokenIds`, `redirectUrl`.
+- **Contract Execution:** `POST /customers/:id/transactions/contract-execution`
+  - `walletId`, `contractAddress`, `abiFunctionSignature`, `abiParameters`, `redirectUrl`.
+- **Cancel/Accelerate:**
+  - `POST /customers/:id/transactions/:txId/cancel`
+  - `POST /customers/:id/transactions/:txId/accelerate`
+  - `redirectUrl` (required).
 
 #### Signing Challenges
 
--   **Sign Message:** `POST /customers/:id/sign/message`
-    -   `walletId`, `message`, `redirectUrl`, `encodedByHex` (optional), `memo` (optional).
--   **Sign Typed Data:** `POST /customers/:id/sign/typed-data`
-    -   `walletId`, `typedData`, `redirectUrl`, `memo` (optional).
--   **Sign Transaction:** `POST /customers/:id/sign/transaction`
-    -   `walletId`, `redirectUrl`, `rawTransaction` OR `transaction`.
--   **Sign Delegate Action:** `POST /customers/:id/sign/delegate-action` (NEAR only)
-    -   `walletId`, `unsignedDelegateAction`, `redirectUrl`.
+- **Sign Message:** `POST /customers/:id/sign/message`
+  - `walletId`, `message`, `redirectUrl`, `encodedByHex` (optional), `memo` (optional).
+- **Sign Typed Data:** `POST /customers/:id/sign/typed-data`
+  - `walletId`, `typedData`, `redirectUrl`, `memo` (optional).
+- **Sign Transaction:** `POST /customers/:id/sign/transaction`
+  - `walletId`, `redirectUrl`, `rawTransaction` OR `transaction`.
+- **Sign Delegate Action:** `POST /customers/:id/sign/delegate-action` (NEAR only)
+  - `walletId`, `unsignedDelegateAction`, `redirectUrl`.
 
 #### Axios Example: Transfer Challenge
 
 ```javascript
 const response = await client.post(
-    `/customers/${customerId}/transactions/transfer`,
-    {
-        walletId: "w_123...",
-        destinationAddress: "0x...",
-        tokenId: "ETH",
-        amounts: ["0.1"],
-        redirectUrl: "https://your-app.com/verify",
-        idempotencyKey: "..."
-    }
+  `/customers/${customerId}/transactions/transfer`,
+  {
+    walletId: "w_123...",
+    destinationAddress: "0x...",
+    tokenId: "ETH",
+    amounts: ["0.1"],
+    redirectUrl: "https://your-app.com/verify",
+    idempotencyKey: "...",
+  },
 );
 console.log(response.data.data.challengeId);
 ```
 
 ### 6.3 Challenge Management
 
--   **List Challenges:** `GET /customers/:id/challenges`
-    -   **Query Parameters**: `status`, `page`, `limit`, `order`.
--   **Get Challenge:** `GET /customers/:id/challenges/:challengeId`
+- **List Challenges:** `GET /customers/:id/challenges`
+  - **Query Parameters**: `status`, `page`, `limit`, `order`.
+- **Get Challenge:** `GET /customers/:id/challenges/:challengeId`
 
 #### Axios Example: Create Self-Custody Challenge
 
 ```javascript
 const response = await client.post(`/customers/${customerId}/initialize`, {
-    blockchains: ["ETH", "SOL"],
-    redirectUrl: "https://your-app.com/verify",
-    idempotencyKey: "..."
+  blockchains: ["ETH", "SOL"],
+  redirectUrl: "https://your-app.com/verify",
+  idempotencyKey: "...",
 });
 console.log(response.data.data.id); // The challengeId
 ```
@@ -509,36 +509,36 @@ Management of tokens (native, fungible, and NFTs) supported by your organization
 
 Lists all supported blockchains and token standards available for your API Key.
 
--   **Endpoint:** `GET /tokens/metadata`
--   **Response:** Returns `chains` and `standards` arrays.
+- **Endpoint:** `GET /tokens/metadata`
+- **Response:** Returns `chains` and `standards` arrays.
 
 ### 7.2 Add Custom Token
 
 Registers a new smart contract token (e.g., ERC-20, SPL) to your organization so it can be used in transfers and balance checks.
 
--   **Endpoint:** `POST /tokens`
--   **Request Body:**
-    -   `blockchain`, `standard`, `name`, `symbol`, `decimals`, `address`.
-    -   `idempotencyKey` (string, optional): Recommended to prevent duplicate registrations.
+- **Endpoint:** `POST /tokens`
+- **Request Body:**
+  - `blockchain`, `standard`, `name`, `symbol`, `decimals`, `address`.
+  - `idempotencyKey` (string, optional): Recommended to prevent duplicate registrations.
 
 ### 7.3 List/Get Tokens
 
--   **List Tokens:** `GET /tokens` (Paginated list of organization tokens).
-    -   **Query Parameters**: `page`, `limit`, `order`.
--   **Get Token:** `GET /tokens/:id` (Details for a specific token).
--   **Remove Token:** `DELETE /tokens/:id` (Unregisters a token from your organization).
+- **List Tokens:** `GET /tokens` (Paginated list of organization tokens).
+  - **Query Parameters**: `page`, `limit`, `order`.
+- **Get Token:** `GET /tokens/:id` (Details for a specific token).
+- **Remove Token:** `DELETE /tokens/:id` (Unregisters a token from your organization).
 
 #### Axios Example: Add Custom Token
 
 ```javascript
 const response = await client.post("/tokens", {
-    blockchain: "ETH",
-    standard: "erc20",
-    address: "0x...",
-    name: "My Token",
-    symbol: "MTK",
-    decimals: 18,
-    idempotencyKey: "..."
+  blockchain: "ETH",
+  standard: "erc20",
+  address: "0x...",
+  name: "My Token",
+  symbol: "MTK",
+  decimals: 18,
+  idempotencyKey: "...",
 });
 ```
 
@@ -557,10 +557,10 @@ Retrieve organization-specific security parameters.
 
 Retrieves the PEM-formatted RSA Public Key used to encrypt organization secrets for sensitive operations.
 
--   **Endpoint:** `GET /config/organization/public-key`
--   **Authentication:** API Key required.
--   **Response:**
-    -   `200 OK`: Returns the public key in the `data` field.
+- **Endpoint:** `GET /config/organization/public-key`
+- **Authentication:** API Key required.
+- **Response:**
+  - `200 OK`: Returns the public key in the `data` field.
 
 > [!TIP]
 > This key is static for your organization. You can cache it locally to avoid frequent API calls.
@@ -588,15 +588,15 @@ All errors follow a consistent JSON structure:
 
 ```json
 {
-    "success": false,
-    "message": "Detailed error message here.",
-    "stack": "..." // Only in development mode
+  "success": false,
+  "message": "Detailed error message here.",
+  "stack": "..." // Only in development mode
 }
 ```
 
 ### 9.3 Common Error Scenarios
 
--   **Idempotency Failure**: If a second request is made with an existing `idempotencyKey` but different parameters, it may return a `400` or `409`.
--   **Secret Reuse**: Using the same `encryptedOrganizationSecret` twice will result in a `401 Unauthorized`.
--   **Restricted Key**: Attempting a `POST` request with a `GET`-only (Restricted) key returns a `403 Forbidden`.
--   **Rate Limit Exceeded**: Exceeding the global rate limit returns a `429 Too Many Requests`.
+- **Idempotency Failure**: If a second request is made with an existing `idempotencyKey` but different parameters, it may return a `400` or `409`.
+- **Secret Reuse**: Using the same `encryptedOrganizationSecret` twice will result in a `401 Unauthorized`.
+- **Restricted Key**: Attempting a `POST` request with a `GET`-only (Restricted) key returns a `403 Forbidden`.
+- **Rate Limit Exceeded**: Exceeding the global rate limit returns a `429 Too Many Requests`.
