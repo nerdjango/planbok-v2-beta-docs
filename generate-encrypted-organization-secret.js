@@ -14,13 +14,13 @@ const crypto = require("crypto");
  * Paste the public key from the Planbok dashboard.
  */
 const organizationPublicKey = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0g+zt0XaWKG4KTKlacGX
-JWnKbynTxRqJmIDH2i4PCeD6jj75ePmXK3hM7EZNOfLgqzQcPqLjEVFrSaimWnVe
-f7r0lXE1NQ/GeoZYuk1I+81ebamC8MzKALYi7OJk/stin/ylU2ATH3QW1dWa6fq3
-Z6iJG8DaLd6mIstLAglXgvzMdyoLWRm0WcfYlpPkSm73IwNQMespZAjSL9pG7mjM
-GhiCTp5Lzb5eKtbi4I/puFrNQkQ0uczevSN63wUiBXXXlEx8dnmtsXmuli/UJAfg
-R/YB1wrdkI1GzepkYdiVcl0L+RcSzr34KkwZ6ablvmS8O/hM9DnRH08/VxHpw2Ov
-KwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7cabIFPjyOospGuMNqQo
+tUhzZEyQjtjZeXVzS8cz9ymCrNjwdkU6fiAubzjHrvH59uPC9dW6NDH+gOOgRroM
+QE9xjdtwNqDqLG+gQW7g4XxIQ2wAgq6pl1iC+7NX30H32KnQbuxP4TpsRdXuOrtq
+Xu1y2ogty7+1YBFTiOrMI7Yapk3GOdutRJoo4+sgPYHXLRKyFx46aC5r+w26BoAc
++vzZqBrMG6/Y75JurGLOlwB9oxWBi/uvI9Hu+4XtctnPoRAyQ4rNs87+VGyzU8ah
+z8mRtyaJMaBZ+3IgTaozRekhIb4WctuMqxyzAVO6XNzUUvCE5+rS8PrS91zY8cF0
+NwIDAQAB
 -----END PUBLIC KEY-----`;
 
 /**
@@ -77,6 +77,7 @@ function main() {
     // Create a JSON object containing the secret, timestamp and context metadata.
     // Use 'dkg' for organization setup/DKG initiation.
     // Use 'sign' for creating wallets, signing transactions, or signing messages.
+    // Use 'verify' for private key exporting.
     // node generate-encrypted-organization-secret.js sign
     const args = process.argv.slice(2);
     const context = args[0] || 'dkg';
